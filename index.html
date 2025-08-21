@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>วงกลมวิเคราะห์ธาตุเจ้าเรือน</title>
+  <style>
+    body {
+      font-family: "Kanit", sans-serif;
+      font-size: 20px;
+      color: black;
+      background: #2c2c2c;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;   /* จัดให้อยู่กึ่งกลางแนวตั้ง */
+      min-height: 100vh;         /* เต็มจอแนวตั้ง */
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: white;
+    }
+    .instructions, .summary {
+      background: #fae0cf;
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 1200px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .instructions h2, .summary h2 {
+      margin-top: 0;
+    }
+    .container {
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .form-section {
+      background: #fae0cf;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 1200px;        /* ยาวเต็มเท่ากับกล่องวิธีใช้ */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin: 20px auto;
+    }
+
+    /* จัด input/select/button ให้อยู่ในแถวเดียว */
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;          /* ถ้าหน้าจอเล็กจะตัดลงบรรทัดใหม่ */
+      gap: 10px;                /* ระยะห่างระหว่างช่อง */
+      align-items: center;
+    }
+
+    .form-row label {
+      margin-right: 5px;
+      white-space: nowrap;
+    }
+
+    .form-row select,
+    .form-row input {
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #666;
+      background: #fff;
+      color: black;
+    }
+
+    .form-row button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 10px;
+      background: #fff;
+      color: black;
+      cursor: pointer;
+    }
+    .form-row button:hover {
+      background: #d2d2d2;
+    }
+
+    #canvas {
+      display: block;
+      margin: auto;
+      border: 1px solid #2c2c2c;
+      background: #2c2c2c;
+      cursor: grab;
+      touch-action: none; /* ช่วยให้ลากบนมือถือ滑ไม่ชน gesture */
+    }
+    #canvas:active {
+      cursor: grabbing;
+    }
+
+    /* ปุ่มแผ่นวงกลมล่างและบน (ขยาย + สีเมื่อคลิกค้าง) */
+    .circle-btn {
+      padding: 15px 30px;     /* ขยายขนาดปุ่ม */
+      font-size: 20px;        /* ตัวอักษรใหญ่ขึ้น */
+      border: none;
+      border-radius: 10px;
+      background: #fff;
+      color: black;
+      cursor: pointer;
+      margin: 5px;
+      transition: background 0.2s, transform 0.05s;
+      user-select: none;
+    }
+    .circle-btn:hover {
+      background: #a5a4a5;
+    }
+    .circle-btn:active {
+      transform: translateY(1px);
+    }
+    .circle-btn.active {
+      background: #d2d2d2;
+    }
+  </style>
+</head>
+<body>
+  <h1>วงกลมวิเคราะห์ธาตุเจ้าเรือน</h1>
+
+  <!-- กล่องวิธีใช้ -->
+  <div class="instructions">
+    <h2>วิธีใช้</h2>
+    <ol>
+      <li>กรอกวันเดือนปีเกิด กดคำนวณวันที่อ้างอิง</li>
+      <li>กดปุ่มแผ่นวงกลมล่างหรือบน เพื่อเลือกและคลิกที่แผ่นวงกลมเพื่อหมุน</li>
+      <li>หมุนแผ่นวงกลมล่าง ให้ลูกศรชี้ตรงกับวันที่อ้างอิง</li>
+      <li>หมุนแผ่นวงกลมบน ให้ลูกศรด้านซ้ายมือชี้ตรงกับวันเดือนเกิดของผู้ต้องการตรวจให้ปลายลูกศรด้านซ้ายมือ(ด้านที่ไม่มีช่องแถบสี) ชี้ตรงกับวันเกิด</li>
+      <li>อ่านผลที่ลูกศรด้านขวามือ(ด้านที่มีช่องแถบสี) จะแสดงถึงวันปฏิสนธิ และมีช่องว่าง มองเห็นแถบสีต่าง ๆ ซึ่งจะบอกให้ทราบถึงธาตุเจ้าเรือน </li>
+    </ol>
+  </div>
+
+  <!-- ส่วนกรอกข้อมูล (ย้ายออกมาอยู่ใต้ "วิธีใช้") -->
+  <div class="form-section">
+    <div class="form-row">
+      <label>วันที่</label>
+      <select id="day">
+        <option value="">-- เลือกวัน --</option>
+        <script>
+          for (let i = 1; i <= 31; i++) {
+            document.write(`<option value="${i}">${i}</option>`);
+          }
+        </script>
+      </select>
+
+      <label>เดือน</label>
+      <select id="month">
+        <option value="">-- เลือกเดือน --</option>
+        <option value="1">มกราคม</option>
+        <option value="2">กุมภาพันธ์</option>
+        <option value="3">มีนาคม</option>
+        <option value="4">เมษายน</option>
+        <option value="5">พฤษภาคม</option>
+        <option value="6">มิถุนายน</option>
+        <option value="7">กรกฎาคม</option>
+        <option value="8">สิงหาคม</option>
+        <option value="9">กันยายน</option>
+        <option value="10">ตุลาคม</option>
+        <option value="11">พฤศจิกายน</option>
+        <option value="12">ธันวาคม</option>
+      </select>
+
+      <label>ปี (พ.ศ.)</label>
+      <input type="number" id="year" placeholder="เช่น 2568">
+
+      <button onclick="calculateReference()">คำนวณวันที่อ้างอิง</button>
+    </div>
+
+    <p id="referenceResult"></p>
+
+    <hr>
+    <!-- ปุ่มที่ขยายและเปลี่ยนสีค้างเมื่อเลือก -->
+    <button id="btnLower" class="circle-btn" onclick="selectImage(2)" aria-pressed="false">แผ่นวงกลมล่าง</button>
+    <button id="btnUpper" class="circle-btn" onclick="selectImage(3)" aria-pressed="false">แผ่นวงกลมบน</button>
+  </div>
+
+  <!-- container มีเฉพาะวงกลมแล้ว -->
+  <div class="container">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <!-- กล่องสรุปผล -->
+  <div class="summary">
+    <h2>สรุปผล</h2>
+    <p>
+      <b>สามารถอ่านผลโดยสรุปได้ดังนี้</b><br>
+      ช่องหมายเลข 1 หมายถึงธาตุเจ้าเรือนหลัก<br>
+      ช่องหมายเลข 2, 3 หมายถึงธาตุเจ้าเรือนรอง<br>
+      ช่องสุดท้าย (ถัดจากหมายเลข 3) หมายถึงอุตุสมุฏฐาน
+    </p>
+    <p>
+      หลังจากรู้จัก ธาตุเจ้าเรือนของตนเองแล้ว ควรระมัดระวัง หลีกเลี่ยงพฤติกรรมที่เป็นมูลเหตุเกิดโรค<br>
+      และรับประทานอาหาร ให้สอดคล้องกับธาตุเจ้าเรือนดังนี้
+    </p>
+    <h2>การประเมินธาตุ</h2>
+    <ul>
+      <li><b>ธาตุดิน</b><br>
+      โดยปกติคนธาตุดินจะเป็นคนที่แข็งแรง ไม่ค่อยป่วย<br>
+      อาจมีปัญหาสุขภาพด้านกล้ามเนื้อกระดูก<br>
+      ควรรับประทานอาหารเน้นที่รสฝาด หวาน มัน เค็ม เมื่อธาตุดินเสียสมดุล</li>
+      <li><b>ธาตุน้ำ</b><br>
+      ศอเสมหะ : อาจมีปัญหาด้านสุขภาพที่เกี่ยวข้องกับทางเดินหายใจส่วนบน ภูมิแพ้ ไข้หวัด<br> 
+      อุระเสมหะ : อาจมีปัญหาด้านสุขภาพที่เกี่ยวข้องกับช่องอก เช่น ปอด ตับ หัวใจ<br>
+      คูถเสมหะ : อาจมีปัญหาด้านสุขภาพที่เกี่ยวข้องกับระบบลำไส้ การย่อยและการขับถ่าย<br>
+      ควรรับประทานอาหารเน้นที่รสเปรี้ยว ขม เมื่อธาตุน้ำเสียสมดุล</li>
+      <li><b>ธาตุลม</b><br>
+      สุมนาวาตะ : อาจจะมีปัญหาเรื่องโรคที่เกี่ยวข้องกับธาตุลมภาพรวมในร่างกาย<br>
+      สัตถกวาตะ : อาจจะมีปัญหาเรื่องโรคอาการปวดเมื่อย เจ็บเสียด จุกเสียด<br>
+      หทัยวาตะ : อาจจะมีปัญหาเรื่องความกังวล ความรู้สึก ความเครียด ระบบหัวใจ<br>
+      ควรรับประทานอาหารเน้นที่รสเผ็ดร้อน เมื่อธาตุลมเสียสมดุล</li>
+      <li><b>ธาตุไฟ</b><br>
+      พัทธปิตตะ : อาจมีปัญหาด้านสุขภาพที่เกี่ยวข้องกับระบบน้ำดี ตับ ตับอ่อน<br>
+      อพัทธะปิตตะ : อาจมีปัญหาด้านสุขภาพที่เกี่ยวข้องกับระบบพลังงาน ฮอร์โมน<br>
+      กำเดา : อาจมีปัญหาด้านสุขภาพที่เกี่ยวข้องกับระบบเลือด อ่อนเพลีย การนอน<br>
+      ควรรับประทานอาหารเน้นที่รสขม เย็น จืด เมื่อธาตุไฟเสียสมดุล</li>
+    </ul>
+    <p>
+      การรับประทานอาหารเป็นคำแนะนำเบื้องต้น ตามการประเมินธาตุเจ้าเรือนด้วยตนเอง<br>
+      อาจไม่สอดคล้องกับอาการของธาตุที่ผิดปกติซึ่งแสดงผลจริง ณ ช่วงเวลานั้นๆ<br>
+      ควรปรึกษาแพทย์แผนไทยใกล้ท่านเพื่อตรวจรักษาโดยละเอียดอีกครั้งหนึ่ง
+    </p>
+    <p>
+      <b>Credit</b><br>
+      แผ่นวงกลม : พ.ญ.เพ็ญนภา ทรัพย์เจริญ ศูนย์พัฒนาตำราฯ มูลนิธิการแพทย์แผนไทยพัฒนา<br>
+      การแปลผล : ตำราการแพทย์ไทยเดิม (แพทยศาสตร์สงเคราะห์ ฉบับอนุรักษ์ เล่มที่ 1)<br>
+    </p>
+    <p>  
+      เว็บไซต์จัดทำขึ้นเพื่อเผยแพร่ความรู้ด้านสุขภาพ มีลิขสิทธิ์ โดย นางสาวอรสา โอภาสวัฒนา<br>
+      เปิดให้แพทย์แผนไทย/แพทย์แผนไทยประยุกต์ที่สนใจ และประชาชนใช้ฟรี
+      ไม่อนุญาตให้นำไปขายต่อ หรือแสวงหาผลกำไร
+    </p>
+    <p>
+      หากท่านเห็นว่ามีประโยชน์และอยากสนับสนุน สามารถโอนส่งกำลังใจได้ที่เลขที่บัญชี 680-112-9955 ธนาคารกรุงศรีอยุธยา นางสาวอรสา โอภาสวัฒนา
+    </p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const img1 = new Image();
+    const img2 = new Image();
+    const img3 = new Image();
+
+    img1.src = "1.png";
+    img2.src = "2.png";
+    img3.src = "3.png";
+
+    let selected = null;
+    let angle1 = 0;
+    let angle2 = 0;
+    let angle3 = 0;
+
+    let isDragging = false;
+    let lastAngle = 0;
+
+    // ตารางวันที่อ้างอิง
+    const referenceDates = {
+      2454:"3 มีนาคม",2455:"22 มีนาคม",2456:"11 มีนาคม",2457:"1 มีนาคม",2458:"19 มีนาคม",2459:"8 มีนาคม",
+      2460:"25 กุมภาพันธ์",2461:"17 มีนาคม",2462:"5 มีนาคม",2463:"24 มีนาคม",2464:"13 มีนาคม",
+      2465:"2 มีนาคม",2466:"20 มีนาคม",2467:"9 มีนาคม",2468:"27 กุมภาพันธ์",2469:"18 มีนาคม",
+      2470:"6 มีนาคม",2471:"25 มีนาคม",2472:"14 มีนาคม",2473:"4 มีนาคม",2474:"22 มีนาคม",
+      2475:"11 มีนาคม",2476:"28 กุมภาพันธ์",2477:"20 มีนาคม",2478:"8 มีนาคม",2479:"25 กุมภาพันธ์",
+      2480:"16 มีนาคม",2481:"5 มีนาคม",2482:"24 มีนาคม",2483:"13 มีนาคม",2484:"13 มีนาคม",
+      2485:"2 มีนาคม",2486:"21 มีนาคม",2487:"9 มีนาคม",2488:"26 กุมภาพันธ์",2489:"18 มีนาคม",
+      2490:"7 มีนาคม",2491:"25 มีนาคม",2492:"14 มีนาคม",2493:"3 มีนาคม",2494:"23 มีนาคม",
+      2495:"11 มีนาคม",2496:"28 กุมภาพันธ์",2497:"19 มีนาคม",2498:"8 มีนาคม",2499:"26 กุมภาพันธ์",
+      2500:"16 มีนาคม",2501:"5 มีนาคม",2502:"24 มีนาคม",2503:"12 มีนาคม",2504:"1 มีนาคม",
+      2505:"21 มีนาคม",2506:"10 มีนาคม",2507:"27 กุมภาพันธ์",2508:"17 มีนาคม",2509:"6 มีนาคม",
+      2510:"26 มีนาคม",2511:"14 มีนาคม",2512:"3 มีนาคม",2513:"22 มีนาคม",2514:"11 มีนาคม",
+      2515:"29 มีนาคม",2516:"19 มีนาคม",2517:"8 มีนาคม",2518:"27 มีนาคม",2519:"15 มีนาคม",
+      2520:"4 มีนาคม",2521:"24 มีนาคม",2522:"13 มีนาคม",2523:"1 มีนาคม",2524:"21 มีนาคม",
+      2525:"10 มีนาคม",2526:"27 กุมภาพันธ์",2527:"17 กุมภาพันธ์",2528:"6 มีนาคม",2529:"25 มีนาคม",
+      2530:"14 มีนาคม",2531:"3 มีนาคม",2532:"22 มีนาคม",2533:"11 มีนาคม",2534:"28 กุมภาพันธ์",
+      2535:"19 มีนาคม",2536:"8 มีนาคม",2537:"27 มีนาคม",2538:"16 มีนาคม",2539:"4 มีนาคม",
+      2540:"24 มีนาคม",2541:"13 มีนาคม",2542:"2 มีนาคม",2543:"20 มีนาคม",2544:"9 มีนาคม",
+      2545:"1 มีนาคม",2546:"18 มีนาคม",2547:"6 มีนาคม",2548:"25 มีนาคม",2549:"14 มีนาคม",
+      2550:"3 มีนาคม",2551:"22 มีนาคม",2552:"11 มีนาคม",2553:"28 กุมภาพันธ์",2554:"19 มีนาคม",
+      2555:"7 มีนาคม",2556:"27 มีนาคม",2557:"16 มีนาคม",2558:"5 มีนาคม",2559:"23 มีนาคม",
+      2560:"12 มีนาคม",2561:"2 มีนาคม",2562:"21 มีนาคม",2563:"9 มีนาคม",2564:"26 กุมภาพันธ์",
+      2565:"18 มีนาคม",2566:"7 มีนาคม",2567:"25 มีนาคม",2568:"14 มีนาคม",2569:"3 มีนาคม",
+      2570:"22 มีนาคม"
+    };
+
+    function calculateReference() {
+      const year = parseInt(document.getElementById("year").value);
+      if (referenceDates[year]) {
+        document.getElementById("referenceResult").innerText =
+          "วันที่อ้างอิง: " + referenceDates[year];
+      } else {
+        document.getElementById("referenceResult").innerText =
+          "ไม่พบข้อมูลวันที่อ้างอิงของปีนี้";
+      }
+    }
+
+    // ---- เลือกแผ่นที่ต้องการหมุน + เปลี่ยนสีปุ่มค้าง (active) ----
+    function selectImage(num) {
+      selected = num;
+
+      // ล้าง active ทุกปุ่มก่อน
+      document.querySelectorAll('.circle-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+
+      // ใส่ active ให้ปุ่มที่ถูกเลือก
+      const targetBtn = (num === 2) ? document.getElementById('btnLower') : document.getElementById('btnUpper');
+      if (targetBtn) {
+        targetBtn.classList.add('active');
+        targetBtn.setAttribute('aria-pressed', 'true');
+      }
+    }
+
+    function drawImages() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.translate(canvas.width/2, canvas.height/2);
+      ctx.rotate(angle1);
+      ctx.drawImage(img1, -canvas.width/2, -canvas.height/2, canvas.width, canvas.height);
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(canvas.width/2, canvas.height/2);
+      ctx.rotate(angle2);
+      ctx.drawImage(img2, -canvas.width/2, -canvas.height/2, canvas.width, canvas.height);
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(canvas.width/2, canvas.height/2);
+      ctx.rotate(angle3);
+      ctx.drawImage(img3, -canvas.width/2, -canvas.height/2, canvas.width, canvas.height);
+      ctx.restore();
+    }
+
+    function getAngle(x, y) {
+      const rect = canvas.getBoundingClientRect();
+      const cx = rect.left + canvas.width/2;
+      const cy = rect.top + canvas.height/2;
+      return Math.atan2(y - cy, x - cx);
+    }
+
+    canvas.addEventListener("mousedown", e => {
+      if (!selected) return;
+      isDragging = true;
+      lastAngle = getAngle(e.clientX, e.clientY);
+    });
+
+    canvas.addEventListener("mousemove", e => {
+      if (!isDragging) return;
+      const angle = getAngle(e.clientX, e.clientY);
+      const delta = angle - lastAngle;
+      if (selected === 2) angle2 += delta;
+      if (selected === 3) angle3 += delta;
+      lastAngle = angle;
+      drawImages();
+    });
+
+    window.addEventListener("mouseup", () => { isDragging = false; });
+
+    // -------------------- Touch Events (มือถือ) --------------------
+    canvas.addEventListener("touchstart", e => {
+      if (!selected) return;
+      isDragging = true;
+      const touch = e.touches[0];
+      lastAngle = getAngle(touch.clientX, touch.clientY);
+      e.preventDefault(); // ป้องกันการเลื่อนหน้าจอ
+    });
+
+    canvas.addEventListener("touchmove", e => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      const angle = getAngle(touch.clientX, touch.clientY);
+      const delta = angle - lastAngle;
+      if (selected === 2) angle2 += delta;
+      if (selected === 3) angle3 += delta;
+      lastAngle = angle;
+      drawImages();
+      e.preventDefault(); // ป้องกันการเลื่อนหน้าจอ
+    });
+
+    canvas.addEventListener("touchend", () => {
+      isDragging = false;
+    });
+
+    let loaded = 0;
+    [img1,img2,img3].forEach(img => {
+      img.onload = () => {
+        loaded++;
+        if (loaded === 3) {
+          // ลดขนาดลง 20%
+          canvas.width = img1.width * 0.8;
+          canvas.height = img1.height * 0.8;
+          drawImages();
+        }
+      };
+    });
+  </script>
+</body>
+</html>
