@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>วงกลมวิเคราะห์ธาตุเจ้าเรือน</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: "Kanit", sans-serif;
-      font-size: 20px;
+      font-size: 18px;
       color: black;
       background: #2c2c2c;
       margin: 0;
@@ -83,7 +84,7 @@
       border: none;
       border-radius: 10px;
       background: #fff;
-      font-size: 20px;
+      font-size: 18px;
       color: black;
       cursor: pointer;
     }
@@ -106,7 +107,7 @@
     /* ปุ่มแผ่นวงกลมล่างและบน (ขยาย + สีเมื่อคลิกค้าง) */
     .circle-btn {
       padding: 15px 30px;     /* ขยายขนาดปุ่ม */
-      font-size: 20px;        /* ตัวอักษรใหญ่ขึ้น */
+      font-size: 18px;        /* ตัวอักษรใหญ่ขึ้น */
       border: none;
       border-radius: 10px;
       background: #fff;
@@ -125,6 +126,21 @@
     .circle-btn.active {
       background: #d2d2d2;
     }
+
+    html, body {
+      -webkit-text-size-adjust: 100%;
+      -moz-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    /* ฟอนต์และขนาดอักษรให้คงที่ */
+    body, input, select, button, p, li, h1, h2, h3 {
+      font-family: "Kanit", sans-serif;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
   </style>
 </head>
 <body>
